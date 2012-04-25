@@ -1,0 +1,66 @@
+#!/bin/sh -ex
+
+NAME=roundup
+ADMIN_PASS=turnkey
+DB_PASS=$(mcookie)
+
+RT_TRACKER=/var/lib/roundup/tracker
+RT_TEMPLATE=classic
+RT_BACKEND=mysql
+
+# convenience symlinks
+ln -s $RT_TRACKER /var/www/webroot
+ln -s /etc/roundup /var/www/config
+ln -s /usr/share/doc/roundup /var/www/docs
+
+# innodb workaround (Incorrect information in file: './roundup/schema.frm'")
+/etc/init.d/mysql start
+/etc/init.d/mysql stop
+rm /var/lib/mysql/ib*
+
+# start mysql server
+/etc/init.d/mysql start
+
+# create roundup and user and grant privs to yet to be created db
+mysql --user=root --password=$MYSQL_PASS --batch --execute "\
+GRANT ALL PRIVILEGES ON $NAME.* TO $NAME@localhost IDENTIFIED BY '$DB_PASS'; \
+FLUSH PRIVILEGES;"
+
+# roundup tracker creation
+OPTIONS="admin_email=admin,dispatcher_email=admin,tracker_web=/,mail_domain=example.com,mail_host=localhost,rdbms_password=$DB_PASS"
+roundup-admin -i $RT_TRACKER install $RT_TEMPLATE $RT_BACKEND $OPTIONS
+roundup-admin -i $RT_TRACKER initialise $ADMIN_PASS
+echo "tracker = $RT_TRACKER" >> /etc/roundup/roundup-server.ini
+chown -R www-data:www-data $RT_TRACKER/db
+
+# move tracker configuration to etc
+mv $RT_TRACKER/config.ini /etc/roundup/tracker-config.ini
+ln -s /etc/roundup/tracker-config.ini $RT_TRACKER/config.ini
+
+# disable registration confirmation via email (requires mail server)
+OPTION=email_registration_confirmation
+sed -i "s|^$OPTION = yes|$OPTION = no|" /etc/roundup/tracker-config.ini
+
+# create link to local documentation
+sed -i "s;Roundup docs</a>;Roundup docs</a>\n    (<a href=\"/docs\" i18n:translate=\"\">local</a>);" $RT_TRACKER/html/page.html
+
+# don't display turnkey-credit in popups
+for file in *.help*.html _generic.calendar.html; do
+    sed -i "s|</head>|<style type='text/css'> #turnkey-credit { display: none; }</style>\n  </head>|" $RT_TRACKER/html/$file
+done
+
+# apache configuration
+ln -s /etc/roundup/apache.conf /etc/apache2/sites-available/roundup
+a2dissite default
+a2ensite roundup
+
+# we don't need roundup-server (using apache)
+update-rc.d -f roundup remove
+chmod -x /etc/init.d/roundup
+
+# remove empty folder created for multiple instances
+rm -rf /var/lib/roundup/trackers
+
+# stop mysql server
+/etc/init.d/mysql stop
+

@@ -1,0 +1,16 @@
+#include <turnkey/base>
+
+apache2-mpm-worker
+libapache2-mod-python
+webmin-apache
+
+mysql-server
+python-mysqldb
+webmin-mysql
+
+postfix
+webmin-postfix
+
+roundup
+
+python-tz               /* Full timezone support */
