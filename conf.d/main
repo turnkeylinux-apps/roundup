@@ -50,9 +50,10 @@ for file in *.help*.html _generic.calendar.html; do
 done
 
 # apache configuration
-ln -s /etc/roundup/apache.conf /etc/apache2/sites-available/roundup
-a2dissite default
+ln -s /etc/roundup/apache.conf /etc/apache2/sites-available/roundup.conf
+a2dissite 000-default
 a2ensite roundup
+rm -rf /var/www/html
 
 # we don't need roundup-server (using apache)
 update-rc.d -f roundup remove
