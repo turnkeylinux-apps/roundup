@@ -8,9 +8,6 @@ mysql-server
 python-mysqldb
 webmin-mysql
 
-postfix
-webmin-postfix
-
 roundup
 
 python-tz               /* Full timezone support */
