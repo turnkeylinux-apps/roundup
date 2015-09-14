@@ -49,4 +49,4 @@ Credentials *(passwords set at first boot)*
 
 
 .. _Roundup: http://roundup.sourceforge.net
-.. _TurnKey Core: http://www.turnkeylinux.org/core
+.. _TurnKey Core: https://www.turnkeylinux.org/core
