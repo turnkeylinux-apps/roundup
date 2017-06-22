@@ -1,3 +1,12 @@
+turnkey-roundup-14.2 (1) turnkey; urgency=low
+
+  * Installed security updates.
+
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changs specific to this appliance.
+
+ -- Stefan Davis <stefan@turnkeylinux.org>  Thu, 22 Jun 2017 12:30:53 +1000
+
 turnkey-roundup-14.1 (1) turnkey; urgency=low
 
   * Installed security updates.
