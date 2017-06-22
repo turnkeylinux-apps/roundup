@@ -7,6 +7,7 @@ Option:
 
 """
 
+import os
 import sys
 import getopt
 import inithooks_cache
@@ -61,6 +62,8 @@ def main():
     m = MySQL()
     m.execute('UPDATE roundup._user SET _address=\"%s\" WHERE _username=\"admin\";' % email)
     m.execute('UPDATE roundup._user SET _password=\"%s\" WHERE _username=\"admin\";' % hashpass)
+    os.system('service apache2 restart')
+    
 
 if __name__ == "__main__":
     main()
