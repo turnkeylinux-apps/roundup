@@ -8,25 +8,41 @@ RT_TRACKER=/var/lib/roundup/tracker
 RT_TEMPLATE=classic
 RT_BACKEND=mysql
 
+pip install 'roundup==1.5.1'
+# workaround rowsize issue for mariadb 10.1
+patch /usr/local/lib/python2.7/dist-packages/roundup/backends/back_mysql.pt /usr/local/src/back_mysql.patch
+
 # convenience symlinks
 ln -s $RT_TRACKER /var/www/webroot
 ln -s /etc/roundup /var/www/config
 ln -s /usr/share/doc/roundup /var/www/docs
 
 # innodb workaround (Incorrect information in file: './roundup/schema.frm'")
-/etc/init.d/mysql start
-/etc/init.d/mysql stop
+service mysql start
+service mysql stop
 rm /var/lib/mysql/ib*
 
+# update MariaDB defaults to work around MariaDB10.1 bug
+MYCNF=/etc/mysql/mariadb.conf.d/99-turnkey-redmine-workaround.cnf
+cat > $MYCNF <<EOF
+[mysqld]
+default_tmp_storage_engine = InnoDB
+innodb_file_format = Barracuda
+innodb_file_format_max = Barracuda
+innodb_large_prefix = 1
+EOF
+
+a2enmod python
+
 # start mysql server
-/etc/init.d/mysql start
+service mysql start
 
 # create roundup and user and grant privs to yet to be created db
 mysql --user=root --password=$MYSQL_PASS --batch --execute "\
 GRANT ALL PRIVILEGES ON $NAME.* TO $NAME@localhost IDENTIFIED BY '$DB_PASS'; \
 FLUSH PRIVILEGES;"
 
-# roundup tracker creation
+mkdir -p $RT_TRACKER
 OPTIONS="admin_email=admin,dispatcher_email=admin,tracker_web=/,mail_domain=example.com,mail_host=localhost,rdbms_password=$DB_PASS"
 roundup-admin -i $RT_TRACKER install $RT_TEMPLATE $RT_BACKEND $OPTIONS
 roundup-admin -i $RT_TRACKER initialise $ADMIN_PASS
@@ -55,13 +71,9 @@ a2dissite 000-default
 a2ensite roundup
 rm -rf /var/www/html
 
-# we don't need roundup-server (using apache)
-update-rc.d -f roundup remove
-chmod -x /etc/init.d/roundup
-
 # remove empty folder created for multiple instances
 rm -rf /var/lib/roundup/trackers
 
 # stop mysql server
-/etc/init.d/mysql stop
+service mysql stop
 

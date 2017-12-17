@@ -1,13 +1,19 @@
 #include <turnkey/base>
 
-apache2-mpm-worker
 libapache2-mod-python
 webmin-apache
+
+python-pip
+
+/* Dependencies of python-pip */
+python-setuptools
+python-wheel
+
+
+apache2
 
 mysql-server
 python-mysqldb
 webmin-mysql
-
-roundup
 
 python-tz               /* Full timezone support */
