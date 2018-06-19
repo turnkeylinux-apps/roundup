@@ -17,3 +17,4 @@ python-mysqldb
 webmin-mysql
 
 python-tz               /* Full timezone support */
+patch
