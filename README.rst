@@ -11,9 +11,9 @@ and on top of that:
 
 - Roundup configurations:
    
-   - Installed from package management. See /var/www for links to file
-     paths.
-   - Uses Apache2 to serve roundup (instead of roundup-server).
+   - Installed via pip into a python virtual env, within it's own user account.
+     See /var/www for links to file paths.
+   - Roundup served via Apache mod_python.
    - Disabled registration confirmation via email (requires mail
      server).
    - Includes Xapian full text indexer (recommended for large issue DB).
@@ -48,5 +48,5 @@ Credentials *(passwords set at first boot)*
 -  Roundup: username **admin**
 
 
-.. _Roundup: http://roundup.sourceforge.net
+.. _Roundup: http://roundup-tracker.org/
 .. _TurnKey Core: https://www.turnkeylinux.org/core
