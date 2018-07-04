@@ -14,27 +14,36 @@ adduser --disabled-login --gecos 'roundup' $USER
 su - $USER -c "pip install 'roundup==1.5.1' --user"
 
 #  set home access perms
-HOME=/home/roundup/.local
-chmod -R 0775 ${HOME}
-chmod -R 0774 ${HOME}/share
+RT_LOCAL=/home/$USER/.local
+chmod -R 0775 ${RT_LOCAL}
+chmod -R 0774 ${RT_LOCAL}/share
+
+# allow Apache access to docs - requires search perms (x on directory)
+# for full path
+DOCS=$RT_LOCAL/share/doc/roundup/html
+SUB_DIRS="_images _sources _static"
+for dir in $SUB_DIRS; do
+    chmod o+x $DOCS/$dir
+done
+dir=$DOCS
+while [[ "$dir" != "$(dirname $RT_LOCAL)" ]]; do
+    chmod o+x $dir
+    dir=$(dirname $dir)
+done
 
 #  add symlinks
 LOCAL=/usr/local
-TARGET=/bin/roundup-admin
-ln -sf ${HOME}${TARGET} ${LOCAL}${TARGET}
-TARGET=/bin/roundup-gettext
-ln -sf ${HOME}${TARGET} ${LOCAL}${TARGET}
-TARGET=/bin/roundup-mailgw
-ln -sf ${HOME}${TARGET} ${LOCAL}${TARGET}
-TARGET=/share/roundup
-ln -sf ${HOME}${TARGET} ${LOCAL}${TARGET}
+TARGETS="/bin/roundup-admin /bin/roundup-gettext /bin/roundup-mailgw /share/roundup"
+for target in $TARGETS; do
+    ln -sf ${RT_LOCAL}${target} ${LOCAL}${target}
+done
 TARGET=/lib/python2.7
-ln -sf ${HOME}${TARGET}/site-packages/roundup ${LOCAL}${TARGET}/dist-packages/roundup
-ln -sf ${HOME}${TARGET}/site-packages/roundup-1.5.1.dist-info ${LOCAL}${TARGET}/dist-packages/roundup-1.5.1.dist-info
+ln -sf ${RT_LOCAL}${TARGET}/site-packages/roundup ${LOCAL}${TARGET}/dist-packages/roundup
+ln -sf ${RT_LOCAL}${TARGET}/site-packages/roundup-1.5.1.dist-info ${LOCAL}${TARGET}/dist-packages/roundup-1.5.1.dist-info
 
 
 # workaround rowsize issue for mariadb 10.1
-patch ${HOME}/lib/python2.7/site-packages/roundup/backends/back_mysql.py /usr/local/src/back_mysql.patch
+patch ${RT_LOCAL}/lib/python2.7/site-packages/roundup/backends/back_mysql.py /usr/local/src/back_mysql.patch
 
 # convenience symlinks
 ln -s $RT_TRACKER /var/www/webroot
@@ -68,6 +77,7 @@ GRANT ALL PRIVILEGES ON $NAME.* TO $NAME@localhost IDENTIFIED BY '$DB_PASS'; \
 FLUSH PRIVILEGES;"
 
 mkdir -p $RT_TRACKER
+mkdir /etc/roundup
 chown -R roundup:roundup $RT_TRACKER
 OPTIONS="admin_email=admin,dispatcher_email=admin,tracker_web=/,mail_domain=example.com,mail_host=localhost,rdbms_password=$DB_PASS"
 su - $USER -c "roundup-admin -i $RT_TRACKER install $RT_TEMPLATE $RT_BACKEND $OPTIONS
@@ -92,7 +102,6 @@ for file in *.help*.html _generic.calendar.html; do
 done
 
 # apache configuration
-ln -s /etc/roundup/apache.conf /etc/apache2/sites-available/roundup.conf
 a2dissite 000-default
 a2ensite roundup
 rm -rf /var/www/html
