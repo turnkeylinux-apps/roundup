@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/sh -ex
 
 NAME=roundup
 USER=roundup
@@ -26,7 +26,7 @@ for dir in $SUB_DIRS; do
     chmod o+x $DOCS/$dir
 done
 dir=$DOCS
-while [[ "$dir" != "$(dirname $RT_LOCAL)" ]]; do
+while [ "$dir" != "$(dirname $RT_LOCAL)" ]; do
     chmod o+x $dir
     dir=$(dirname $dir)
 done
