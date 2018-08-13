@@ -19,6 +19,11 @@ and on top of that:
    - Includes Xapian full text indexer (recommended for large issue DB).
    - Includes full timezone support and documentation.
 
+     **Security note**: Updates to Roundup may require supervision so
+     they **ARE NOT** configured to install automatically. See `Roundup
+     documentation`_ for upgrading. Please note specific user account and
+     location of virtual env when updating.
+
 - SSL support out of the box.
 - Postfix MTA (bound to localhost) to allow sending of email
   (e.g., password recovery).
@@ -49,4 +54,5 @@ Credentials *(passwords set at first boot)*
 
 
 .. _Roundup: http://roundup-tracker.org/
+.. _Roundup documentation: http://roundup.sourceforge.net/docs/upgrading.html
 .. _TurnKey Core: https://www.turnkeylinux.org/core
