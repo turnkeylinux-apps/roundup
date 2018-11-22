@@ -11,7 +11,7 @@ RT_BACKEND=mysql
 
 adduser --disabled-login --gecos 'roundup' $USER
 
-su - $USER -c "pip install 'roundup==1.5.1' --user"
+su - $USER -c "pip install 'roundup==1.6.0' --user"
 
 #  set home access perms
 RT_LOCAL=/home/$USER/.local
