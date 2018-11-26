@@ -2,6 +2,11 @@ turnkey-roundup-15.1 (1) turnkey; urgency=low
 
   * Updated roundup to 1.6.0.
 
+  * Add domain to inithook to support absolute domain for csrf tockens in
+    Roundup.
+
+  * Add https and domain redirect to apache conf.
+
   * Rebuild to resolve inadvertent removal of mariadb during sec-updates
     - part of #1246.
 
