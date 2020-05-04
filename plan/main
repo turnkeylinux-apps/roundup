@@ -1,4 +1,5 @@
 #include <turnkey/base>
+#include <turnkey/mysql>
 
 libapache2-mod-python
 webmin-apache
@@ -12,7 +13,6 @@ python-wheel
 
 apache2
 
-mysql-server
 python-mysqldb
 webmin-mysql
 
