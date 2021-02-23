@@ -4,17 +4,16 @@
 libapache2-mod-python
 webmin-apache
 
-python-pip
+python3-pip
 
 /* Dependencies of python-pip */
-python-setuptools
-python-wheel
-
+python3-setuptools
+python3-wheel
 
 apache2
 
-python-mysqldb
+python3-mysqldb
 webmin-mysql
 
-python-tz               /* Full timezone support */
+python3-tz                  /* Full timezone support */
 patch
