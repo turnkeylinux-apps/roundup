@@ -88,7 +88,7 @@ def main():
     subprocess.run(["sed", "-i", "s|^web =.*|web = https://%s/|" % domain, conf])
 
     apache_conf = "/etc/apache2/sites-available/roundup.conf"
-    subprocess.run(["sed", "-i", "\|RewriteRule|s|https://.*|https://%s/\$1 [R,L]|" % domain, apache_conf])
+    subprocess.run(["sed", "-i", "\|RewriteRule|s|https://.*|https://%s/\$1 [L,R=301]|" % domain, apache_conf])
     subprocess.run(["sed", "-i", "\|RewriteCond|s|!^.*|!^%s$|" % domain, apache_conf])
 
     subprocess.run(['service', 'apache2', 'restart'])
