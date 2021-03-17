@@ -1,3 +1,15 @@
+turnkey-roundup-16.1 (1) turnkey; urgency=low
+
+  * Updated roundup to 2.0.0.
+
+  * Run roundup via Python3 and Apache mod_wsgi (previous TurnKey releases ran
+    under python3 & Apache mod_python).
+
+  * Note: Please refer to turnkey-core's 16.1 changelog for changes common to
+    all appliances. Here we only describe changes specific to this appliance.
+
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Wed, 17 Mar 2021 16:16:39 +1100
+
 turnkey-roundup-16.0 (1) turnkey; urgency=low
 
   * Updated roundup to 1.6.1.
