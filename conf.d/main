@@ -8,13 +8,17 @@ DB_PASS=$(mcookie)
 RT_TRACKER=/var/lib/roundup/tracker
 RT_TEMPLATE=classic
 RT_BACKEND=mysql
+RT_VER=2.0.0
+RT_CONF=/etc/roundup/tracker-config.ini
+RT_LOCAL=/home/$USER/.local
 
-adduser --disabled-login --gecos 'roundup' $USER
+PY_V=$(python3 --version | sed "s|^.* \(3\.[0-9]\+\).*|\1|")
 
-su - $USER -c "pip install 'roundup==1.6.1' --user"
+adduser --disabled-login --gecos 'roundup user' $USER
+
+su - $USER -c "pip3 install 'roundup==${RT_VER}' --user"
 
 #  set home access perms
-RT_LOCAL=/home/$USER/.local
 chmod -R 0775 ${RT_LOCAL}
 chmod -R 0774 ${RT_LOCAL}/share
 
@@ -37,52 +41,54 @@ TARGETS="/bin/roundup-admin /bin/roundup-gettext /bin/roundup-mailgw /share/roun
 for target in $TARGETS; do
     ln -sf ${RT_LOCAL}${target} ${LOCAL}${target}
 done
-TARGET=/lib/python2.7
-ln -sf ${RT_LOCAL}${TARGET}/site-packages/roundup ${LOCAL}${TARGET}/dist-packages/roundup
-ln -sf ${RT_LOCAL}${TARGET}/site-packages/roundup-1.5.1.dist-info ${LOCAL}${TARGET}/dist-packages/roundup-1.5.1.dist-info
-
-
-# workaround rowsize issue for mariadb 10.1
-patch ${RT_LOCAL}/lib/python2.7/site-packages/roundup/backends/back_mysql.py /usr/local/src/back_mysql.patch
+TARGET=lib/python${PY_V}
+ln -sf ${RT_LOCAL}/${TARGET}/site-packages/roundup ${LOCAL}/${TARGET}/dist-packages/roundup
+ln -sf ${RT_LOCAL}/${TARGET}/site-packages/roundup-${RT_VER}.dist-info ${LOCAL}/${TARGET}/dist-packages/roundup-${RT_VER}.dist-info
 
 # convenience symlinks
 ln -s $RT_TRACKER /var/www/webroot
 ln -s /etc/roundup /var/www/config
-ln -s /usr/share/doc/roundup /var/www/docs
-
+ln -s ${RT_LOCAL}/share/doc/roundup /var/www/docs
+ln -s ${RT_LOCAL}/share/man/man1  /usr/local/share/man/man1
 
 # innodb workaround (Incorrect information in file: './roundup/schema.frm'")
 service mysql start
 service mysql stop
 rm /var/lib/mysql/ib*
 
-a2enmod python
+a2enmod wsgi
 a2enmod rewrite
 
 # start mysql server
 service mysql start
 
 # create roundup and user and grant privs to yet to be created db
-mysql --user=root --password=$MYSQL_PASS --batch --execute "\
-GRANT ALL PRIVILEGES ON $NAME.* TO $NAME@localhost IDENTIFIED BY '$DB_PASS'; \
-FLUSH PRIVILEGES;"
+mysql --batch --execute "\
+    GRANT ALL PRIVILEGES ON $NAME.* TO $NAME@localhost IDENTIFIED BY '$DB_PASS'; \
+    FLUSH PRIVILEGES;"
 
 mkdir -p $RT_TRACKER
 mkdir /etc/roundup
 chown -R roundup:roundup $RT_TRACKER
-OPTIONS="admin_email=admin,dispatcher_email=admin,tracker_web=/,mail_domain=example.com,mail_host=localhost,rdbms_password=$DB_PASS"
-su - $USER -c "roundup-admin -i $RT_TRACKER install $RT_TEMPLATE $RT_BACKEND $OPTIONS
-roundup-admin -i $RT_TRACKER initialise $ADMIN_PASS"
+OPTIONS="admin_email=admin,dispatcher_email=admin,tracker_web=https://www.example.com/,mail_domain=example.com,mail_host=localhost,rdbms_password=$DB_PASS"
+su - $USER -c "roundup-admin -i $RT_TRACKER install $RT_TEMPLATE $RT_BACKEND $OPTIONS"
+su - $USER -c "roundup-admin -i $RT_TRACKER initialise $ADMIN_PASS"
 echo "tracker = $RT_TRACKER" >> /etc/roundup/roundup-server.ini
-chown -R www-data:www-data $RT_TRACKER/db
+#chown -R www-data:www-data $RT_TRACKER/db
+
+# configure mod_wsgi
+cat > $RT_TRACKER/wsgi.py <<EOF
+from roundup.cgi.wsgi_handler import RequestDispatcher
+tracker_home = "$RT_TRACKER"
+application = RequestDispatcher(tracker_home)
+EOF
 
 # move tracker configuration to etc
-mv $RT_TRACKER/config.ini /etc/roundup/tracker-config.ini
-ln -s /etc/roundup/tracker-config.ini $RT_TRACKER/config.ini
+mv $RT_TRACKER/config.ini $RT_CONF
+ln -s $RT_CONF $RT_TRACKER/config.ini
 
-# disable registration confirmation via email (requires mail server)
-OPTION=email_registration_confirmation
-sed -i "s|^$OPTION = yes|$OPTION = no|" /etc/roundup/tracker-config.ini
+# disable registration confirmation via email
+sed -i "\|^email_registration_confirmation =| s|=.*|= no|" $RT_CONF
 
 # create link to local documentation
 sed -i "s;Roundup docs</a>;Roundup docs</a>\n    (<a href=\"/docs\" i18n:translate=\"\">local</a>);" $RT_TRACKER/html/page.html
@@ -97,9 +103,12 @@ a2dissite 000-default
 a2ensite roundup
 rm -rf /var/www/html
 
-# remove empty folder created for multiple instances
-rm -rf /var/lib/roundup/trackers
+mkdir -p /var/www/static/
+cat > /var/www/static/README <<EOF
+Place robots.txt & favicon.ico in this dir.
+
+Ensure that they are readable by the Apache user (www-data).
+EOF
 
 # stop mysql server
 service mysql stop
-
