@@ -1,19 +1,15 @@
 #include <turnkey/base>
 #include <turnkey/mysql>
 
-libapache2-mod-python
+apache2
+libapache2-mod-wsgi-py3
 webmin-apache
 
+/* pip3 and deps  */
 python3-pip
-
-/* Dependencies of python-pip */
 python3-setuptools
 python3-wheel
+python3-dev
 
-apache2
-
-python3-mysqldb
-webmin-mysql
-
+python3-mysqldb             /* roundup MySQL connector */
 python3-tz                  /* Full timezone support */
-patch
