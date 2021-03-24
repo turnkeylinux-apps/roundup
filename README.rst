@@ -13,7 +13,8 @@ and on top of that:
    
    - Installed via pip into a python virtual env, within it's own user account.
      See /var/www for links to file paths.
-   - Roundup served via Apache mod_python.
+   - Roundup served via Apache mod_wsgi.
+   - Domain to serve, set on first boot.
    - Disabled registration confirmation via email (requires mail
      server).
    - Includes Xapian full text indexer (recommended for large issue DB).
@@ -31,13 +32,6 @@ and on top of that:
 
 Initial configuration: */etc/roundup/tracker-config.ini*
 
-**Required settings**::
-
-    [tracker]
-    web = /                     (before)
-    web = http://appliance_ip/  (after)
-    # Note: If not set, links in emails will not include server address.
-
 **Recommended settings**::
 
     [main]
@@ -53,6 +47,6 @@ Credentials *(passwords set at first boot)*
 -  Roundup: username **admin**
 
 
-.. _Roundup: http://roundup-tracker.org/
-.. _Roundup documentation: http://roundup.sourceforge.net/docs/upgrading.html
+.. _Roundup: https://roundup-tracker.org/
+.. _Roundup documentation: https://roundup.sourceforge.net/docs/upgrading.html
 .. _TurnKey Core: https://www.turnkeylinux.org/core
