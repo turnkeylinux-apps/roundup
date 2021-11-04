@@ -8,7 +8,7 @@ DB_PASS=$(mcookie)
 RT_TRACKER=/var/lib/roundup/tracker
 RT_TEMPLATE=classic
 RT_BACKEND=mysql
-RT_VER=2.0.0
+RT_VER=2.1.0
 RT_CONF=/etc/roundup/tracker-config.ini
 RT_LOCAL=/home/$USER/.local
 
