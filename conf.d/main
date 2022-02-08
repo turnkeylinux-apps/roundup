@@ -1,4 +1,4 @@
-#!/bin/sh -ex
+#!/bin/bash -ex
 
 NAME=roundup
 USER=roundup
@@ -16,7 +16,7 @@ PY_V=$(python3 --version | sed "s|^.* \(3\.[0-9]\+\).*|\1|")
 
 adduser --disabled-login --gecos 'roundup user' $USER
 
-su - $USER -c "pip3 install 'roundup==${RT_VER}' --user"
+roundup-install.sh "$RT_VER"
 
 #  set home access perms
 chmod -R 0775 ${RT_LOCAL}
@@ -35,21 +35,6 @@ while [ "$dir" != "$(dirname $RT_LOCAL)" ]; do
     dir=$(dirname $dir)
 done
 
-#  add symlinks
-LOCAL=/usr/local
-TARGETS="/bin/roundup-admin /bin/roundup-gettext /bin/roundup-mailgw /share/roundup"
-for target in $TARGETS; do
-    ln -sf ${RT_LOCAL}${target} ${LOCAL}${target}
-done
-TARGET=lib/python${PY_V}
-ln -sf ${RT_LOCAL}/${TARGET}/site-packages/roundup ${LOCAL}/${TARGET}/dist-packages/roundup
-ln -sf ${RT_LOCAL}/${TARGET}/site-packages/roundup-${RT_VER}.dist-info ${LOCAL}/${TARGET}/dist-packages/roundup-${RT_VER}.dist-info
-
-# convenience symlinks
-ln -s $RT_TRACKER /var/www/webroot
-ln -s /etc/roundup /var/www/config
-ln -s ${RT_LOCAL}/share/doc/roundup /var/www/docs
-ln -s ${RT_LOCAL}/share/man/man1  /usr/local/share/man/man1
 
 # innodb workaround (Incorrect information in file: './roundup/schema.frm'")
 service mysql start
