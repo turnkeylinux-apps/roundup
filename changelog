@@ -1,3 +1,14 @@
+turnkey-roundup-17.0 (1) turnkey; urgency=low
+
+  * Update roundup to 2.1.0.
+
+  * Updated all relevant Debian packages to Bullseye/11 versions
+
+  * Note: Please refer to turnkey-core's 17.0 changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
+
+ -- Stefan Davis <stefan@turnkeylinux.org>  Tue, 08 Feb 2022 02:16:05 +0000
+
 turnkey-roundup-16.1 (1) turnkey; urgency=low
 
   * Updated roundup to 2.0.0.

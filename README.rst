@@ -25,6 +25,13 @@ and on top of that:
      documentation`_ for upgrading. Please note specific user account and
      location of virtual env when updating.
 
+     As a convenience a script ``roundup-install.sh`` is included. This script
+     will perform the installation and setup convenience symlinks. All steps
+     other than installation will still have to be performed manually.
+
+     Usage is: ``roundup-install.sh [opts] <version>``
+
+
 - SSL support out of the box.
 - Postfix MTA (bound to localhost) to allow sending of email
   (e.g., password recovery).
