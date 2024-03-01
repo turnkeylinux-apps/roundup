@@ -23,7 +23,7 @@ EOF
 }
 
 fatal() {
-    echo "error: $@" >&2
+    echo "error: $*" >&2
     usage
     exit 1
 }
@@ -100,10 +100,10 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [[ "${#POSITIONAL[@]}" < 1 ]]; then
+if [[ "${#POSITIONAL[@]}" -lt 1 ]]; then
     fatal "version is required"
-elif [[ "${#POSITIONAL[@]}" > 1 ]]; then
-    fatal "unknown extra args provided: ${POSITIONAL[@]:1}"
+elif [[ "${#POSITIONAL[@]}" -gt 1 ]]; then
+    fatal "unknown extra args provided: ${POSITIONAL[*]:1}"
 fi
 VER="${POSITIONAL[0]}"
 
@@ -114,7 +114,7 @@ if ! is_cached "$VER"; then
     else
         download_ver "$VER"
     fi
-elif [ "$DOWNOAD" == 'y' ]; then
+elif [ "$DOWNLOAD" == 'y' ]; then
     download_ver "$VER"
 fi
 
