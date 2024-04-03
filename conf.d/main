@@ -8,7 +8,7 @@ DB_PASS=$(mcookie)
 RT_TRACKER=/var/lib/roundup/tracker
 RT_TEMPLATE=classic
 RT_BACKEND=mysql
-RT_VER=2.3.0
+RT_VER=$(gh_releases roundup-tracker/roundup | grep -v 'git\|alpha\|beta\|b' | sort -V | tail -1)
 RT_CONF=/etc/roundup/tracker-config.ini
 RT_HOME="/home/$USER"
 
