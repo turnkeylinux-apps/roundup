@@ -8,38 +8,25 @@ DB_PASS=$(mcookie)
 RT_TRACKER=/var/lib/roundup/tracker
 RT_TEMPLATE=classic
 RT_BACKEND=mysql
-RT_VER=2.1.0
+RT_VER=$(gh_releases roundup-tracker/roundup | grep -v 'git\|alpha\|beta\|b' | sort -V | tail -1)
 RT_CONF=/etc/roundup/tracker-config.ini
-RT_LOCAL=/home/$USER/.local
+RT_HOME="/home/$USER"
 
-PY_V=$(python3 --version | sed "s|^.* \(3\.[0-9]\+\).*|\1|")
+as_user() { su - "$USER" -c "$*"; }
 
-adduser --disabled-login --gecos 'roundup user' $USER
+adduser --disabled-login --gecos 'roundup user' --shell /bin/bash $USER
 
-roundup-install.sh "$RT_VER"
+as_user mkdir versions
+as_user python3 -m venv "versions/$RT_VER"
 
-#  set home access perms
-chmod -R 0775 ${RT_LOCAL}
-chmod -R 0774 ${RT_LOCAL}/share
+as_user echo ". versions/$RT_VER/bin/activate" '>' .bashrc.d/roundup-venv
+as_user chmod +x .bashrc.d/roundup-venv
+
+as_user python3 -m pip install mysqlclient roundup pytz
 
 # allow Apache access to docs - requires search perms (x on directory)
-# for full path
-DOCS=$RT_LOCAL/share/doc/roundup/html
-SUB_DIRS="_images _sources _static"
-for dir in $SUB_DIRS; do
-    chmod o+x $DOCS/$dir
-done
-dir=$DOCS
-while [ "$dir" != "$(dirname $RT_LOCAL)" ]; do
-    chmod o+x $dir
-    dir=$(dirname $dir)
-done
-
-
-# innodb workaround (Incorrect information in file: './roundup/schema.frm'")
-service mysql start
-service mysql stop
-rm /var/lib/mysql/ib*
+DOCS="$RT_HOME/versions/$RT_VER/share/doc/roundup/html"
+chmod o+x $DOCS{,/_{images,sources,static}}
 
 a2enmod wsgi
 a2enmod rewrite
@@ -56,10 +43,10 @@ mkdir -p $RT_TRACKER
 mkdir /etc/roundup
 chown -R roundup:roundup $RT_TRACKER
 OPTIONS="admin_email=admin,dispatcher_email=admin,tracker_web=https://www.example.com/,mail_domain=example.com,mail_host=localhost,rdbms_password=$DB_PASS"
-su - $USER -c "roundup-admin -i $RT_TRACKER install $RT_TEMPLATE $RT_BACKEND $OPTIONS"
-su - $USER -c "roundup-admin -i $RT_TRACKER initialise $ADMIN_PASS"
+as_user "roundup-admin -i $RT_TRACKER install $RT_TEMPLATE $RT_BACKEND $OPTIONS"
+as_user "roundup-admin -i $RT_TRACKER initialise $ADMIN_PASS"
 echo "tracker = $RT_TRACKER" >> /etc/roundup/roundup-server.ini
-#chown -R www-data:www-data $RT_TRACKER/db
+chown -R www-data:www-data $RT_TRACKER/db
 
 # configure mod_wsgi
 cat > $RT_TRACKER/wsgi.py <<EOF
