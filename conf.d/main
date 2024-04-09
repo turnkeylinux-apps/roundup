@@ -28,6 +28,9 @@ as_user python3 -m pip install mysqlclient roundup pytz
 DOCS="$RT_HOME/versions/$RT_VER/share/doc/roundup/html"
 chmod o+x $DOCS{,/_{images,sources,static}}
 
+# allow Apache access to venv dir listing
+chmod o+x $RT_HOME{,/versions{,/$RT_VER}}
+
 a2enmod wsgi
 a2enmod rewrite
 
