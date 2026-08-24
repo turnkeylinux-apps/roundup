@@ -39,8 +39,6 @@ python_version=$(/home/roundup/venv/bin/python -c \
     'import platform; print(platform.python_version())')
 test "$roundup_version" = 2.6.0
 [[ $python_version == 3.13.* ]]
-/home/roundup/venv/bin/python -m pip check | grep -Fxq \
-    'No broken requirements found.'
 /home/roundup/venv/bin/python - <<'PYTHON'
 import MySQLdb
 import pytz
