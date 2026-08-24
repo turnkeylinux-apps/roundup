@@ -16,7 +16,8 @@ cleanup() {
 trap cleanup EXIT
 
 csrf_token() {
-    sed -n '/name="@csrf"/{N;s/.*value="\([^"]*\)".*/\1/p}' "$1"
+    sed -n '/name="@csrf"/{N;s/.*name="@csrf"[^>]*value="\([^"]*\)".*/\1/p;q}' \
+        "$1"
 }
 
 systemctl --quiet is-active apache2.service mariadb.service postfix.service \
