@@ -24,7 +24,7 @@ systemctl --quiet is-active apache2.service mariadb.service postfix.service \
     multi-user.target
 systemctl --quiet is-enabled apache2.service mariadb.service postfix.service
 apache2ctl -t
-apache2ctl -M 2>/dev/null | grep -q ' wsgi_module '
+apache2ctl -M 2>/dev/null | grep -F ' wsgi_module ' >/dev/null
 
 roundup_version=$(/home/roundup/venv/bin/python -c \
     'import roundup; print(roundup.__version__)')
