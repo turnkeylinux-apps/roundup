@@ -10,6 +10,13 @@ page=/tmp/tkl-roundup-page.$$
 headers=/tmp/tkl-roundup-headers.$$
 policy=/tmp/tkl-roundup-policy.$$
 
+report_error() {
+    printf 'test_failure line=%s status=%s command=%q\n' \
+        "$1" "$2" "$3" >&2
+    exit "$2"
+}
+trap 'report_error "$LINENO" "$?" "$BASH_COMMAND"' ERR
+
 cleanup() {
     rm -f -- "$cookie" "$page" "$headers" "$policy"
 }
