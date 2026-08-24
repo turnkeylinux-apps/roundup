@@ -1,7 +1,7 @@
 Roundup - Issue Tracking System
 ===============================
 
-`Roundup`_ is a simple-to-use and and powerful issue-tracking system
+`Roundup`_ is a simple-to-use and powerful issue-tracking system
 with command-line, web and e-mail interfaces. Roundup is being used for
 bug tracking and TODO list management, issue management, customer help
 desk support, and sales lead tracking.
@@ -11,25 +11,24 @@ and on top of that:
 
 - Roundup configurations:
    
-   - Installed via pip into a python virtual env, within it's own user account.
-     See /var/www for links to file paths.
+   - Roundup 2.6 is installed from its verified official PyPI source
+     distribution in ``/home/roundup/venv``. Python, the MariaDB driver and
+     timezone data are maintained through Debian Trixie packages.
    - Roundup served via Apache mod_wsgi.
    - Domain to serve, set on first boot.
    - Disabled registration confirmation via email (requires mail
      server).
-   - Includes Xapian full text indexer (recommended for large issue DB).
    - Includes full timezone support and documentation.
 
-     **Security note**: Updates to Roundup may require supervision so
-     they **ARE NOT** configured to install automatically. See `Roundup
-     documentation`_ for upgrading. Please note specific user account and
-     location of virtual env when updating.
+     **Security note**: Roundup updates may require a tracker migration, so
+     they are not installed automatically. Back up the appliance, read the
+     `Roundup documentation`_, then install a selected release with::
 
-     As a convenience a script ``roundup-install.sh`` is included. This script
-     will perform the installation and setup convenience symlinks. All steps
-     other than installation will still have to be performed manually.
+        roundup-update VERSION
 
-     Usage is: ``roundup-install.sh [opts] <version>``
+     The command obtains the release URL and SHA-256 digest from the official
+     PyPI metadata, updates the deployed virtual environment, runs the Roundup
+     tracker migration, and restarts Apache.
 
 
 - SSL support out of the box.
@@ -55,5 +54,5 @@ Credentials *(passwords set at first boot)*
 
 
 .. _Roundup: https://roundup-tracker.org/
-.. _Roundup documentation: https://roundup.sourceforge.net/docs/upgrading.html
+.. _Roundup documentation: https://docs.roundup-tracker.org/en/latest/installation.html#upgrading
 .. _TurnKey Core: https://www.turnkeylinux.org/core
