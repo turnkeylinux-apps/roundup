@@ -8,14 +8,11 @@ Option:
                 DEFAULT=www.example.com
 """
 
-import os
 import sys
 import getopt
 from libinithooks import inithooks_cache
-import hashlib
 
 from libinithooks.dialog_wrapper import Dialog
-from mysqlconf import MySQL
 import subprocess
 
 def usage(s=None):
@@ -78,22 +75,24 @@ def main():
 
     inithooks_cache.write('APP_DOMAIN', domain)
 
-    hashpass = "{SHA}" + hashlib.sha1(password.encode('utf8')).hexdigest()
-
-    m = MySQL()
-    m.execute('UPDATE roundup._user SET _address=%s WHERE _username=\"admin\";', (email,))
-    m.execute('UPDATE roundup._user SET _password=%s WHERE _username=\"admin\";', (hashpass,))
+    subprocess.run([
+        "/home/roundup/venv/bin/roundup-admin",
+        "-i", "/var/lib/roundup/tracker",
+        "-u", "admin:turnkey",
+        "set", "user1",
+        "password=%s" % password,
+        "address=%s" % email,
+    ], check=True)
 
     conf = "/etc/roundup/tracker-config.ini"
-    subprocess.run(["sed", "-i", "s|^web =.*|web = https://%s/|" % domain, conf])
+    subprocess.run(["sed", "-i", "s|^web =.*|web = https://%s/|" % domain, conf], check=True)
 
     apache_conf = "/etc/apache2/sites-available/roundup.conf"
-    subprocess.run(["sed", "-i", "\|RewriteRule|s|https://.*|https://%s/\$1 [L,R=301]|" % domain, apache_conf])
-    subprocess.run(["sed", "-i", "\|RewriteCond|s|!^.*|!^%s$|" % domain, apache_conf])
+    subprocess.run(["sed", "-i", r"\|RewriteRule|s|https://.*|https://%s/\$1 [L,R=301]|" % domain, apache_conf], check=True)
+    subprocess.run(["sed", "-i", r"\|RewriteCond|s|!^.*|!^%s$|" % domain, apache_conf], check=True)
 
-    subprocess.run(['service', 'apache2', 'restart'])
+    subprocess.run(['service', 'apache2', 'restart'], check=True)
     
 
 if __name__ == "__main__":
     main()
-

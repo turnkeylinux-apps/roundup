@@ -1,3 +1,20 @@
+turnkey-roundup-19.0 (1) turnkey; urgency=low
+
+  * Upgrade the base distribution to Debian 13/Trixie.
+
+  * Update Roundup to 2.6.0 from its verified official PyPI source
+    distribution and use Debian packages for its Python runtime, MariaDB
+    driver and timezone data.
+
+  * Replace the obsolete installer with a supervised updater that verifies
+    PyPI release metadata and runs the tracker migration.
+
+  * Use Roundup's password API for the firstboot administrator credential.
+
+  * See the TurnKey Core 19.0 changelog for changes common to all appliances.
+
+ -- TurnKey Linux release engineering <release@turnkeylinux.org>  Mon, 24 Aug 2026 00:00:00 +0000
+
 turnkey-roundup-18.0 (1) turnkey; urgency=low
 
   * Update roundup to 2.3.0.

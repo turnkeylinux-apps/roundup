@@ -1,0 +1,41 @@
+#!/bin/bash
+set -Eeuo pipefail
+
+if [[ $# -ne 1 || ! $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "usage: roundup-update VERSION" >&2
+    exit 2
+fi
+
+version=$1
+venv=/home/roundup/venv
+tracker=/var/lib/roundup/tracker
+
+read -r url sha256 < <(python3 - "$version" <<'PYTHON'
+import json
+import sys
+import urllib.request
+
+version = sys.argv[1]
+with urllib.request.urlopen(
+        f"https://pypi.org/pypi/roundup/{version}/json") as response:
+    metadata = json.load(response)
+
+for artifact in metadata["urls"]:
+    if artifact["packagetype"] == "sdist":
+        print(artifact["url"], artifact["digests"]["sha256"])
+        break
+else:
+    raise SystemExit(f"Roundup {version} has no source distribution")
+PYTHON
+)
+
+su roundup -s /bin/bash -c \
+    "'$venv/bin/python' -m pip install --no-deps --upgrade \
+    'roundup @ $url#sha256=$sha256'"
+test "$($venv/bin/python -c 'import roundup; print(roundup.__version__)')" = \
+    "$version"
+su www-data -s /bin/bash -c \
+    "'$venv/bin/roundup-admin' -i '$tracker' migrate"
+systemctl restart apache2.service
+
+printf 'Roundup %s installed and tracker migration completed.\n' "$version"

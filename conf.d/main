@@ -8,28 +8,33 @@ DB_PASS=$(mcookie)
 RT_TRACKER=/var/lib/roundup/tracker
 RT_TEMPLATE=classic
 RT_BACKEND=mysql
-RT_VER=$(gh_releases roundup-tracker/roundup | grep -v 'git\|alpha\|beta\|b' | sort -V | tail -1)
+RT_VER=2.6.0
+RT_URL=https://files.pythonhosted.org/packages/64/93/17eca3bc4e9bda03c45a9b3bf4fd972d96865efa7b0c09100a55cd58d4e7/roundup-2.6.0.tar.gz
+RT_SHA256=12fd8fb806047415f22131f965c6ab4026a28dc63f7054e055c8f891950591d4
 RT_CONF=/etc/roundup/tracker-config.ini
 RT_HOME="/home/$USER"
+RT_VENV="$RT_HOME/venv"
 
 as_user() { su - "$USER" -c "$*"; }
 
 adduser --disabled-login --gecos 'roundup user' --shell /bin/bash $USER
 
-as_user mkdir versions
-as_user python3 -m venv "versions/$RT_VER"
+as_user python3 -m venv --system-site-packages "$RT_VENV"
 
-as_user echo ". versions/$RT_VER/bin/activate" '>' .bashrc.d/roundup-venv
+as_user echo ". $RT_VENV/bin/activate" '>' .bashrc.d/roundup-venv
 as_user chmod +x .bashrc.d/roundup-venv
 
-as_user python3 -m pip install mysqlclient roundup pytz
+as_user "$RT_VENV/bin/python -m pip install --no-deps \
+    'roundup @ $RT_URL#sha256=$RT_SHA256'"
+version_output=$(as_user "$RT_VENV/bin/roundup-admin -v")
+[[ $version_output == "$RT_VER (python 3.13."*")" ]]
 
 # allow Apache access to docs - requires search perms (x on directory)
-DOCS="$RT_HOME/versions/$RT_VER/share/doc/roundup/html"
+DOCS="$RT_VENV/share/doc/roundup/html"
 chmod o+x $DOCS{,/_{images,sources,static}}
 
 # allow Apache access to venv dir listing
-chmod o+x $RT_HOME{,/versions{,/$RT_VER}}
+chmod o+x "$RT_HOME" "$RT_VENV"
 
 a2enmod wsgi
 a2enmod rewrite
@@ -46,8 +51,8 @@ mkdir -p $RT_TRACKER
 mkdir /etc/roundup
 chown -R roundup:roundup $RT_TRACKER
 OPTIONS="admin_email=admin,dispatcher_email=admin,tracker_web=https://www.example.com/,mail_domain=example.com,mail_host=localhost,rdbms_password=$DB_PASS"
-as_user "roundup-admin -i $RT_TRACKER install $RT_TEMPLATE $RT_BACKEND $OPTIONS"
-as_user "roundup-admin -i $RT_TRACKER initialise $ADMIN_PASS"
+as_user "$RT_VENV/bin/roundup-admin -i $RT_TRACKER install $RT_TEMPLATE $RT_BACKEND $OPTIONS"
+as_user "$RT_VENV/bin/roundup-admin -i $RT_TRACKER initialise $ADMIN_PASS"
 echo "tracker = $RT_TRACKER" >> /etc/roundup/roundup-server.ini
 chown -R www-data:www-data $RT_TRACKER/db
 
